@@ -14,10 +14,14 @@ class InMemoryRateLimiter:
         self.history = defaultdict(list)  # ip -> list of timestamps
 
     def get_client_ip(self, request: Request) -> str:
-        # Resolve client IP, prioritizing standard proxy header
-        x_forwarded_for = request.headers.get("x-forwarded-for")
-        if x_forwarded_for:
-            return x_forwarded_for.split(",")[0].strip()
+        """Resolve client IP from the direct connection.
+
+        Note: X-Forwarded-For is intentionally NOT trusted here because any
+        client can spoof it, which would let an attacker bypass rate limits.
+        If you run behind a trusted reverse proxy, configure uvicorn with
+        --proxy-headers and --forwarded-allow-ips to have request.client.host
+        set correctly by the ASGI server instead.
+        """
         if request.client:
             return request.client.host
         return "unknown"

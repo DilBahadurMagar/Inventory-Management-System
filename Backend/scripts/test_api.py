@@ -11,7 +11,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.dependencies import get_current_user
+from app.models import User
 
+# Bypass auth for smoke testing
+app.dependency_overrides[get_current_user] = lambda: User(email="test@example.com")
 client = TestClient(app)
 
 ENDPOINTS = [
@@ -29,7 +33,7 @@ ENDPOINTS = [
     ("POST", "/users", {
         "username": "testuser",
         "email": "test@example.com",
-        "password": "testpass123",
+        "password": "TestPass123!",
         "full_name": "Test User",
     }),
 ]

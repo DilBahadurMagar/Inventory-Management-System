@@ -88,7 +88,11 @@ def test_rate_limiting() -> bool:
         from fastapi.testclient import TestClient
         from app.main import app
         from app.rate_limiter import limiter_general, limiter_auth
+        from app.dependencies import get_current_user
+        from app.models import User
 
+        # Bypass auth for rate limit testing
+        app.dependency_overrides[get_current_user] = lambda: User(email="test@example.com")
         client = TestClient(app)
 
         # ── General limiter (set to 3 for rapid testing) ─────────────────────

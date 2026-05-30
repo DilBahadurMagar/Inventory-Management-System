@@ -2,9 +2,11 @@ import jwt
 import bcrypt
 from datetime import datetime, timedelta, timezone
 
-SECRET_KEY = "supersecretkeyjwt12345!"  # In production, load this from settings/environment
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+from app.config import settings
+
+SECRET_KEY = settings.jwt_secret_key
+ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:

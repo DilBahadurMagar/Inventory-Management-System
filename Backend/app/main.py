@@ -4,10 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import categories, items, users, locations
 
+_is_prod = settings.environment.lower() == "production"
+
 app = FastAPI(
     title="Inventory & Asset Management System",
     description="REST API for inventory, assets, and user management.",
     version="0.1.0",
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
 )
 
 # Parse and clean origins list

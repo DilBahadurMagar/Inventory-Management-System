@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
-from app.models import User, Role
+from app.models import User
 from app.schemas import UserCreate, UserResponse, UserLogin, TokenResponse
 from app.security import get_password_hash, verify_password, create_access_token
 from app.rate_limiter import limiter_general, limiter_auth
@@ -16,6 +16,12 @@ def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user) # Protect this endpoint
 ) -> list[UserResponse]:
+    """
+    List all registered users.
+
+    Retrieves a list of all user profiles including names, emails, roles, and status.
+    Requires active user authentication.
+    """
     return db.query(User).all()
 
 
@@ -29,6 +35,13 @@ def create_user(
     payload: UserCreate,
     db: Session = Depends(get_db),
 ) -> UserResponse:
+    """
+    Register a new user account.
+
+    Creates a new user profile with standard VIEWER permissions.
+    Validates password strength (requires at least 8 characters, one uppercase, one lowercase, one digit, and one special character).
+    Raises 400 Bad Request if username or email already exists.
+    """
     # check email and username duplicates
     existing_user = db.query(User).filter(
         (User.email == payload.email) | (User.username == payload.username)
@@ -39,18 +52,14 @@ def create_user(
             detail="Username or email already exists"
         )
     
-    # check role
-    if payload.role_id:
-        role = db.get(Role, payload.role_id)
-        if not role:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid role_id"
-            )
-            
+    # Force VIEWER role for self-registration to prevent privilege escalation.
+    # Admins should update role_id directly in the database or via a separate
+    # admin-only endpoint.
+    safe_role_id = 3  # VIEWER
+
     hashed_password = get_password_hash(payload.password)
     new_user = User(
-        role_id=payload.role_id,
+        role_id=safe_role_id,
         username=payload.username,
         email=payload.email,
         password_hash=hashed_password,
@@ -69,6 +78,14 @@ def login(
     payload: UserLogin,
     db: Session = Depends(get_db)
 ) -> TokenResponse:
+    """
+    Authenticate user and issue JWT token.
+
+    Verifies the email and password.
+    Updates the 'last_login' timestamp on success.
+    Returns a JWT Bearer access token and basic user profile information.
+    Raises 401 Unauthorized for incorrect credentials and 400 Bad Request if the account is inactive.
+    """
     user = db.query(User).filter_by(email=payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
@@ -96,4 +113,10 @@ def login(
 
 @router.get("/me", response_model=UserResponse, dependencies=[Depends(limiter_general)])
 def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
+    """
+    Get current logged-in user's profile.
+
+    Decodes the session JWT token and returns the current user's details.
+    Requires active user authentication.
+    """
     return current_user

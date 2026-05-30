@@ -105,9 +105,11 @@ class Item(Base):
 
     category: Mapped[Category | None] = relationship(back_populates="items")
     inventory_records: Mapped[list["Inventory"]] = relationship(
-        back_populates="item"
+        back_populates="item", cascade="all, delete-orphan"
     )
-    assets: Mapped[list["Asset"]] = relationship(back_populates="item")
+    assets: Mapped[list["Asset"]] = relationship(
+        back_populates="item", cascade="all, delete-orphan"
+    )
     transactions: Mapped[list["Transaction"]] = relationship(
         back_populates="item"
     )

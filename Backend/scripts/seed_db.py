@@ -1,3 +1,5 @@
+import os
+import secrets
 import sys
 from pathlib import Path
 from decimal import Decimal
@@ -36,19 +38,25 @@ def seed():
 
         # 2. Admin User
         admin_email = "admin@example.com"
+        admin_password = os.environ.get("SEED_ADMIN_PASSWORD") or secrets.token_urlsafe(16)
         admin_user = db.query(User).filter_by(email=admin_email).first()
         if not admin_user:
             admin_user = User(
                 role_id=1,
                 username="admin",
                 email=admin_email,
-                password_hash=get_password_hash("adminpassword123"),
+                password_hash=get_password_hash(admin_password),
                 full_name="Alex Morgan",
                 is_active=True,
                 created_at=datetime.now(timezone.utc)
             )
             db.add(admin_user)
-            print(f"Admin user created: {admin_email} / adminpassword123")
+            if os.environ.get("SEED_ADMIN_PASSWORD"):
+                print(f"Admin user created: {admin_email} (password set via SEED_ADMIN_PASSWORD)")
+            else:
+                print(f"Admin user created: {admin_email}")
+                print(f"  Auto-generated password: {admin_password}")
+                print("  ⚠ Save this password now — it cannot be recovered.")
         else:
             print("Admin user already exists.")
         db.commit()

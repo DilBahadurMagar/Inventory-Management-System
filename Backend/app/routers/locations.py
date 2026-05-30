@@ -17,7 +17,15 @@ router = APIRouter(
 def list_locations(
     active_only: bool = True,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[LocationResponse]:
+    """
+    List all warehouse and asset locations.
+
+    Retrieves a list of locations, ordered alphabetically by name.
+    Allows filtering to active-only sites (enabled by default).
+    Requires active user authentication.
+    """
     query = db.query(Location)
     if active_only:
         query = query.filter_by(is_active=True)
@@ -25,7 +33,18 @@ def list_locations(
 
 
 @router.get("/{location_id}", response_model=LocationResponse)
-def get_location(location_id: int, db: Session = Depends(get_db)) -> LocationResponse:
+def get_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> LocationResponse:
+    """
+    Retrieve a specific location's details.
+
+    Fetches full information for a single location by its database ID.
+    Raises a 404 Not Found if the location does not exist.
+    Requires active user authentication.
+    """
     loc = db.get(Location, location_id)
     if not loc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")
@@ -42,6 +61,13 @@ def create_location(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LocationResponse:
+    """
+    Register a new warehouse or storage location.
+
+    Creates a new operational location with an address and active state.
+    Raises a 400 Bad Request if a location with the same name already exists.
+    Requires active user authentication.
+    """
     existing = db.query(Location).filter_by(name=payload.name).first()
     if existing:
         raise HTTPException(
@@ -62,6 +88,13 @@ def update_location(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LocationResponse:
+    """
+    Update details of an existing location.
+
+    Modifies the name, address, or active status of a specified location.
+    Raises a 404 Not Found if the location is missing.
+    Requires active user authentication.
+    """
     loc = db.get(Location, location_id)
     if not loc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")
@@ -79,6 +112,14 @@ def delete_location(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> None:
+    """
+    Deactivate (soft delete) a location.
+
+    Sets the 'is_active' attribute to False for the specified location, 
+    preserving database references and transaction history while hiding it from active queries.
+    Raises a 404 Not Found if the location does not exist.
+    Requires active user authentication.
+    """
     loc = db.get(Location, location_id)
     if not loc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")

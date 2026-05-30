@@ -85,7 +85,16 @@ def list_items(
     sort_key: str = Query(default="name"),
     sort_dir: str = Query(default="asc"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ItemFullList:
+    """
+    Retrieve, search, and filter inventory items.
+
+    Retrieves a list of items with unified details (aggregated inventory count, location, 
+    and primary asset status). Supports text searches across names/SKUs, status filtering (including a 
+    computed low stock filter), category filtering, pagination, and sorting.
+    Requires active user authentication.
+    """
     query = db.query(Item)
 
     # Filter by category name
@@ -141,7 +150,19 @@ def list_items(
 
 
 @router.get("/{item_id}", response_model=ItemFull)
-def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemFull:
+def get_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ItemFull:
+    """
+    Retrieve details of a specific inventory item.
+
+    Fetches comprehensive information of a single item, including total stock count, 
+    first associated asset status, location, and metadata.
+    Raises a 404 Not Found if the item is missing.
+    Requires active user authentication.
+    """
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
@@ -154,6 +175,14 @@ def create_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ItemFull:
+    """
+    Create a new inventory item.
+
+    Registers a new product/item in the catalog. Automatically inserts its initial 
+    associated Asset record and sets up its physical Inventory location and starting stock quantity.
+    Raises 400 Bad Request if the SKU/Asset ID is already in use, or if the specified location does not exist.
+    Requires active user authentication.
+    """
     # Check SKU uniqueness
     if db.query(Item).filter_by(sku=payload.sku).first():
         raise HTTPException(
@@ -223,6 +252,14 @@ def update_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ItemFull:
+    """
+    Update details of an existing inventory item.
+
+    Modifies any catalog attributes (name, SKU, unit price, reorder level, category),
+    or associated status, serial number, purchase date, physical location, and stock quantities.
+    Raises 404 Not Found if the item is missing.
+    Requires active user authentication.
+    """
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
@@ -276,6 +313,13 @@ def delete_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> None:
+    """
+    Permanently delete an inventory item.
+
+    Removes the catalog item along with its associated asset history and inventory records.
+    Raises 404 Not Found if the item is missing.
+    Requires active user authentication.
+    """
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")

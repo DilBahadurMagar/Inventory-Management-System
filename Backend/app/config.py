@@ -17,6 +17,14 @@ class Settings(BaseSettings):
         default="http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
     )
 
+    # JWT settings — SECRET_KEY is required, no default (fail-fast if missing)
+    jwt_secret_key: str = Field(...)
+    jwt_algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=30)
+
+    # Environment flag — controls docs visibility, fallback behaviour, etc.
+    environment: str = Field(default="development")
+
     db_host: str | None = Field(default=None)
     db_port: int = Field(default=5432)
     db_name: str = Field(default="postgres")
@@ -28,8 +36,9 @@ class Settings(BaseSettings):
         has_url = bool(self.database_url and self.database_url.strip())
         has_parts = bool(self.db_host and self.db_user and self.db_password)
         if not has_url and not has_parts:
-            self.database_url = (
-                "postgresql://postgres:postgres@localhost:5432/inventory_db"
+            raise ValueError(
+                "Database not configured. "
+                "Set DATABASE_URL or DB_HOST + DB_USER + DB_PASSWORD in your .env file."
             )
         return self
 
