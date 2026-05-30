@@ -1,0 +1,156 @@
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-gray-950: #0a0b0e;
+  --color-gray-900: #0f1117;
+  --color-gray-850: #141720;
+  --color-gray-800: #1a1f2e;
+  --color-gray-750: #1e2436;
+  --color-gray-700: #252d3d;
+  --color-gray-600: #2e3a50;
+  --color-gray-500: #3d4d66;
+  --color-gray-400: #5a6a82;
+  --color-gray-300: #7f8ea8;
+  --color-gray-200: #a8b5c9;
+  --color-gray-100: #d0d8e8;
+  --color-gray-50: #eef1f7;
+
+  --shadow-glow-blue: 0 0 20px rgba(37, 99, 235, 0.25);
+  --shadow-glow-emerald: 0 0 20px rgba(16, 185, 129, 0.25);
+  --shadow-glow-amber: 0 0 20px rgba(245, 158, 11, 0.25);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 40px rgba(0, 0, 0, 0.5);
+
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-slide-in: slideIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-scale-in: scaleIn 0.2s ease-out;
+  --animate-pulse-soft: pulseSoft 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.5s infinite;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slideIn {
+    0% { transform: translateX(-16px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideUp {
+    0% { transform: translateY(16px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes scaleIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes pulseSoft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+}
+
+.inventory-app {
+  @apply antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.inventory-app ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.inventory-app ::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+.inventory-app ::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full;
+}
+.inventory-app ::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-600;
+}
+.inventory-app ::selection {
+  @apply bg-blue-600/40 text-blue-100;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl;
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card-hover {
+    @apply bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl transition-all duration-300;
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .glass-card-hover:hover {
+    @apply border-gray-600/60 -translate-y-0.5;
+    box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-lg
+           transition-all duration-200 active:scale-95 flex items-center gap-2 text-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium px-4 py-2 rounded-lg
+           transition-all duration-200 active:scale-95 flex items-center gap-2 text-sm border border-gray-600;
+  }
+
+  .btn-danger {
+    @apply bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 font-medium px-4 py-2 rounded-lg
+           transition-all duration-200 active:scale-95 flex items-center gap-2 text-sm border border-rose-600/30;
+  }
+
+  .input-base {
+    @apply bg-gray-800/80 border border-gray-700 text-gray-100 rounded-lg px-3 py-2 text-sm
+           placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/60
+           transition-all duration-200 w-full;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+           text-gray-400 hover:text-gray-100 hover:bg-gray-800/80
+           transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-link-active {
+    @apply bg-blue-600/15 text-blue-400 border border-blue-600/20;
+  }
+
+  .table-row-hover {
+    @apply hover:bg-gray-800/50 transition-colors duration-150;
+  }
+
+  .shimmer-base {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 25%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.02) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-300;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+.shadow-glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
